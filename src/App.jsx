@@ -16,16 +16,17 @@ function App() {
   const [userAddress, setUserAddress] = useState('');
   const [results, setResults] = useState([]);
   const [hasQueried, setHasQueried] = useState(false);
-  const [tokenDataObjects, setTokenDataObjects] = useState([]);
 
   async function getNFTsForOwner() {
     const config = {
-      apiKey: '<-- COPY-PASTE YOUR ALCHEMY API KEY HERE -->',
+      apiKey: 'zzWHdoHRNQ_s3yaJVr-RMMAUlcgpbyyc',
       network: Network.ETH_MAINNET,
     };
 
     const alchemy = new Alchemy(config);
     const data = await alchemy.nft.getNftsForOwner(userAddress);
+
+    // console.log("getNFTSForOwner: data, ", data);
     setResults(data);
 
     const tokenDataPromises = [];
@@ -37,9 +38,14 @@ function App() {
       );
       tokenDataPromises.push(tokenData);
     }
+    const tokenData = await Promise.all(tokenDataPromises);
+    console.log('tokenData: ', tokenData);
 
-    setTokenDataObjects(await Promise.all(tokenDataPromises));
     setHasQueried(true);
+
+    // data.ownedNfts.map((e, i) => {
+    //   console.log(e.contract.openSea.collectionName);
+    // });
   }
   return (
     <Box w="100vw">
@@ -82,6 +88,10 @@ function App() {
         {hasQueried ? (
           <SimpleGrid w={'90vw'} columns={4} spacing={24}>
             {results.ownedNfts.map((e, i) => {
+
+              if (e.metadataError) {
+                return false;
+              }
               return (
                 <Flex
                   flexDir={'column'}
@@ -92,13 +102,12 @@ function App() {
                 >
                   <Box>
                     <b>Name:</b>{' '}
-                    {tokenDataObjects[i].title?.length === 0
-                      ? 'No Name'
-                      : tokenDataObjects[i].title}
+                    { console.log(e.rawMetadata.image) }
+                    {e.rawMetadata?.name ?? 'No Name'}
                   </Box>
                   <Image
                     src={
-                      tokenDataObjects[i]?.rawMetadata?.image ??
+                      e.rawMetadata?.image ??
                       'https://via.placeholder.com/200'
                     }
                     alt={'Image'}
